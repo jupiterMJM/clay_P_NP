@@ -8,9 +8,9 @@ import numpy as np
 
 
 # définition des variables initiales
-nb_eleves_max = 100
-nb_contraintes_max = 10
-nb_chambres_max = 10
+nb_eleves_max = 400
+nb_contraintes_max = 1000
+nb_chambres_max = 100
 
 
 # création des fonctions initiales
@@ -28,10 +28,11 @@ def generation_incompatibilite(nb_contraintes, nb_eleves):
             retour.append(contrainte)
     return retour
 
-def verification(proposition, contraintes):
+def verification(proposition, contraintes, nb_e, nb_c):
     # print(proposition)
-    if type(proposition) == str:
-        return proposition
+    if proposition == "INSOLUBLE":
+        if test_insolubilite(contraintes, nb_e, nb_c): # si True: on a bien insolubilite
+            return "INSOLUBILITE VALIDE"
     for elt in contraintes:
         if not(elt[0] in proposition and elt[1] in proposition):
             pass  # tout va bien
@@ -65,7 +66,7 @@ def test_insolubilite(contrainte, nb_eleves, nb_chambres):
     >>> test_insolubilite([(0, 2)], 3, 3)
     True
     """
-    print(contrainte)
+    # print(contrainte)
     matrice = m.generation_matrice_contrainte(contrainte, nb_eleves)
     # print(matrice)
     power = np.linalg.matrix_power(matrice, nb_chambres)
@@ -82,26 +83,34 @@ def test(nb_test):
         nb_chambres = rd.randint(1, min(nb_chambres_max, nb_eleves))
         print(f"\n {nb_contraintes} {nb_eleves} {nb_chambres}")
         contraintes = generation_incompatibilite(nb_contraintes, nb_eleves)
-        print(contraintes)
+        # print(contraintes)
         retour = m.main(contraintes, nb_eleves, nb_chambres)
         if retour == None:
             print("none", contraintes, nb_eleves, nb_chambres)
+            return
         if retour == "INSOLUBLE":
-            return "INSOLUBLE"
+            if test_insolubilite(contraintes, nb_eleves, nb_chambres):
+                print("insolubilité vérifiée")
+            else:
+                print(contraintes, nb_eleves, nb_chambres)
+                return "INSOLUBLE INVALIDE"
         if retour == "ERREUR_GENERATION":
             return "ERREUR_GENERATION"
-        if verification(retour, contraintes) == "ERREUR_ALGO_NON_VALIDE":
-            print(nb_eleves, nb_chambres, nb_contraintes)
+        if verification(retour, contraintes, nb_eleves, nb_chambres) == "ERREUR_ALGO_NON_VALIDE":
+            # print(nb_eleves, nb_chambres, nb_contraintes)
             return
         print("\n")
         
 def test_clay(nb_contraintes, verbose=True):
+    """
+    400 élèves pour 100 chambres
+    """
     debut = t.time()
     contraintes = generation_incompatibilite(nb_contraintes, 400)
     mil = t.time()
     retour = m.main(contraintes, 400, 100)
     fin = t.time()
-    check=verification(retour, contraintes)
+    check=verification(retour, contraintes, 400, 100)
     if verbose:
         print(retour)
         print(check)
@@ -116,3 +125,5 @@ def test_clay_puissant(nb_max_contraintes, nb_test_par_contrainte):
             if test_clay(nb_contrainte, False) == "INSOLUBLE":
                 indic += 1
         print(nb_contrainte, indic)
+
+test_clay(2200)

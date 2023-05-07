@@ -1,4 +1,5 @@
 # fichier pour vérifier le fichier main
+# on dit qu'un problème est insoluble quand il y a trop de contraintes par rapport au nombre d'élèves
 
 # importation des modules
 import random as rd
@@ -7,29 +8,37 @@ import time as t
 import numpy as np
 
 
-# définition des variables initiales
+# définition des variables initiales pour la fonction test
 nb_eleves_max = 400
 nb_contraintes_max = 1000
 nb_chambres_max = 100
 
 
 # création des fonctions initiales
-def generation_incompatibilite(nb_contraintes, nb_eleves):
+def generation_incompatibilite(nb_contraintes:int, nb_eleves:int) -> list:
     """
-    je crois que pour n élèves il y a au plus n(n+1)/2 contraintes possibles
+    permet de générer une liste d'élèves incompatibles aléatoirement
+
+    je crois que pour n élèves il y a au plus n(n-1)/2 contraintes possibles
     hypothèse établie sur les premiers entiers mais non vérifiée
     """
     assert nb_contraintes <= int(nb_eleves*(nb_eleves-1)/2)
     retour = list()
     while len(retour) < nb_contraintes:
         contrainte = rd.sample(range(nb_eleves), 2)
-        contrainte = (min(contrainte), max(contrainte))
+        contrainte = (min(contrainte), max(contrainte))  # on oragnise la contrainte par convention
         if contrainte not in retour:
             retour.append(contrainte)
     return retour
 
-def verification(proposition, contraintes, nb_e, nb_c):
-    # print(proposition)
+def verification(proposition:list, contraintes:list, nb_e:int, nb_c:int) -> str:
+    """
+    permet de vérifier une proposition de rangement en fonction des contraintes
+    est aussi un intermédiaire pour vérifier l'insolubilité d'un problème
+    :param: nb_e: le nombre d'étudiants
+    :param: nb_c: le nombre de chambres
+    :return: un message d'erreur ou de vérification
+    """
     if proposition == "INSOLUBLE":
         if test_insolubilite(contraintes, nb_e, nb_c): # si True: on a bien insolubilite
             return "INSOLUBILITE VALIDE"
@@ -43,8 +52,11 @@ def verification(proposition, contraintes, nb_e, nb_c):
             return "ERREUR_ALGO_NON_VALIDE"
     return "PROPOSITION_VALIDE"
 
-def count_zero_par_ligne(matrice):
+def count_zero_par_ligne(matrice:np.array):
     """
+    juste une fonction annexe
+    permet de compter le nombre de zéro sur une ligne de matrice
+
     >>> count_zero_par_ligne(np.array([[1, 1, 2], [0, 0, 0], [1, 0, 1]]))
     [0, 3, 1]
     """
@@ -76,7 +88,11 @@ def test_insolubilite(contrainte, nb_eleves, nb_chambres):
     return transfo < nb_chambres  # True si insoluble
 
 # fonction pour tester la robustesse de l'algorithme
-def test(nb_test):
+def test(nb_test:int):
+    """
+    on teste l'algorithme sur plein de cas différents
+    utilise les variables définies à l'extérieur de la fonction
+    """
     for _ in range(nb_test):
         nb_eleves = rd.randint(2, nb_eleves_max)
         nb_contraintes = rd.randint(1, min(int(nb_eleves*(nb_eleves-1)/2), nb_contraintes_max))
@@ -101,8 +117,9 @@ def test(nb_test):
             return
         print("\n")
         
-def test_clay(nb_contraintes, verbose=True):
+def test_clay(nb_contraintes:int, verbose=True):
     """
+    on vérifie directement le problème tel qu'il est posé sur le site de l'insitut Clay
     400 élèves pour 100 chambres
     """
     debut = t.time()
@@ -118,12 +135,13 @@ def test_clay(nb_contraintes, verbose=True):
     return check
 
 
-def test_clay_puissant(nb_max_contraintes, nb_test_par_contrainte):
+def test_clay_puissant(nb_max_contraintes:int, nb_test_par_contrainte:int):
+    """
+    on vérifie le problème tel qu'il est posé sur un grand nombre de contraintes différentes
+    """
     for nb_contrainte in range(1, nb_max_contraintes):
         indic = 0
         for _ in range(nb_test_par_contrainte):
             if test_clay(nb_contrainte, False) == "INSOLUBLE":
                 indic += 1
         print(nb_contrainte, indic)
-
-test_clay(2200)

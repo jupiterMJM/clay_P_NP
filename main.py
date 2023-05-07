@@ -2,11 +2,6 @@
 import random as rd
 import numpy as np
 
-# définition des variables initiales
-nb_eleves = 400
-nb_contraintes = 50
-nb_chambres = 100
-
 
 # définition des fonctions initiales
 def score_eleves_chiants(contrainte, nb_eleves):
